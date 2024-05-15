@@ -57,6 +57,24 @@ mod bonding_curve {
         pub fn get_pool(&self, pool_id: PoolId) -> Option<&Pool> {
             self.pools.get(&pool_id)
         }
+
+        #[ink(message)]
+        pub fn deposit(&mut self, pool_id: PoolId, amount: u128) {
+            let pool = self.pools.get_mut(&pool_id).expect("Pool does not exist");
+            // Perform liquidity deposit logic here
+        }
+
+        #[ink(message)]
+        pub fn withdraw(&mut self, pool_id: PoolId, amount: u128) {
+            let pool = self.pools.get_mut(&pool_id).expect("Pool does not exist");
+            // Perform liquidity withdrawal logic here
+        }
+
+        #[ink(message)]
+        pub fn set_params(&mut self, pool_id: PoolId, parameters: Vec<u128>) {
+            let pool = self.pools.get_mut(&pool_id).expect("Pool does not exist");
+            pool.parameters = StorageVec::from(parameters);
+        }
     }
 
     #[cfg(test)]
@@ -72,6 +90,39 @@ mod bonding_curve {
             let pool = contract.get_pool(pool_id).unwrap();
             assert_eq!(pool.curve_type, curve_type);
             assert_eq!(pool.parameters.as_ref(), &parameters);
+        }
+
+        #[test]
+        fn deposit_works() {
+            let mut contract = BondingCurve::new();
+            let curve_type = CurveType::Linear;
+            let parameters = vec![100, 50]; // example parameters
+            let pool_id = contract.create_pool(curve_type, parameters.clone());
+            contract.deposit(pool_id, 100);
+            // Add assertion here
+        }
+
+        #[test]
+        fn withdraw_works() {
+            let mut contract = BondingCurve::new();
+            let curve_type = CurveType::Linear;
+            let parameters = vec![100, 50]; // example parameters
+            let pool_id = contract.create_pool(curve_type, parameters.clone());
+            contract.deposit(pool_id, 100);
+            contract.withdraw(pool_id, 50);
+            // Add assertion here
+        }
+
+        #[test]
+        fn set_params_works() {
+            let mut contract = BondingCurve::new();
+            let curve_type = CurveType::Linear;
+            let parameters = vec![100, 50]; // example parameters
+            let pool_id = contract.create_pool(curve_type, parameters.clone());
+            let new_params = vec![200, 100]; // new example parameters
+            contract.set_params(pool_id, new_params.clone());
+            let pool = contract.get_pool(pool_id).unwrap();
+            assert_eq!(pool.parameters.as_ref(), &new_params);
         }
     }
 }
