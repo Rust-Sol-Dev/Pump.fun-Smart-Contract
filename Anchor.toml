@@ -4,14 +4,14 @@
 seeds = true
 skip-lint = false
 
-[programs.localnet]
-bonding_curve = "HHtpy5cez4guhvwoXVCZzo8EUce6ouJyXaxZ7r9CVR24"
+[programs.devnet]
+bonding_curve = "E58hTvPaxPAB94oR81SBreahBUtb88Tv9QKbxXDrwN4i"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "devnet"
 wallet = "./id.json"
 
 [scripts]
@@ -19,3 +19,5 @@ test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
 
 [test]
 startup_wait = 10000
+shutdown_wait = 2000
+upgradeable = false
