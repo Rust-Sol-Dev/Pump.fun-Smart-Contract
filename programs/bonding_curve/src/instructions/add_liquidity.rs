@@ -41,7 +41,7 @@ pub fn add_liquidity(ctx: Context<AddLiquidity>, amount_one: u64, amount_two: u6
 pub struct AddLiquidity<'info> {
     #[account(
         mut,
-        seeds = [LiquidityPool::POOL_SEED_PREFIX.as_bytes(), LiquidityPool::generate_seed(mint_token_one.key(), mint_token_two.key()).as_bytes()],
+        seeds = [LiquidityPool::POOL_SEED_PREFIX.as_bytes(), mint_token_one.key().as_ref(), mint_token_two.key().as_ref()],
         bump = pool.bump
     )]
     pub pool: Box<Account<'info, LiquidityPool>>,
@@ -95,7 +95,7 @@ pub struct AddLiquidity<'info> {
 
     #[account(mut)]
     pub user: Signer<'info>,
-
+    pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,

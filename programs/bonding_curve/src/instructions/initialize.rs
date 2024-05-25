@@ -29,6 +29,6 @@ pub struct InitializeCurveConfiguration<'info> {
 
     #[account(mut)]
     pub admin: Signer<'info>,
-
+    pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
 }

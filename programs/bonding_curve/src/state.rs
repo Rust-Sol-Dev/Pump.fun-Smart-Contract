@@ -1,15 +1,15 @@
 use crate::consts::INITIAL_PRICE;
 use crate::errors::CustomError;
-use crate::utils::convert_from_float;
+// use crate::utils::convert_from_float;
 use crate::utils::convert_to_float;
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 use anchor_spl::token::{self, Mint, Token, TokenAccount};
 use std::cmp;
-use std::ops::Add;
-use std::ops::Div;
+// use std::ops::Add;
+// use std::ops::Div;
 use std::ops::Mul;
-use std::ops::Sub;
+// use std::ops::Sub;
 
 #[account]
 pub struct CurveConfiguration {
@@ -57,13 +57,13 @@ impl LiquidityPool {
     pub const ACCOUNT_SIZE: usize = 8 + 32 + 32 + 8 + 8 + 8 + 1;
 
     // Helper function to generate a seed for PDAs based on token public keys
-    pub fn generate_seed(token_one: Pubkey, token_two: Pubkey) -> String {
-        if token_one > token_two {
-            format!("{}{}", token_one.to_string(), token_two.to_string())
-        } else {
-            format!("{}{}", token_two.to_string(), token_one.to_string())
-        }
-    }
+    // pub fn generate_seed(token_one: Pubkey, token_two: Pubkey) -> String {
+    //     if token_one > token_two {
+    //         format!("{}{}", token_one.to_string(), token_two.to_string())
+    //     } else {
+    //         format!("{}{}", token_two.to_string(), token_one.to_string())
+    //     }
+    // }
 
     // Constructor to initialize a LiquidityPool with two tokens and a bump for the PDA
     pub fn new(token_one: Pubkey, token_two: Pubkey, bump: u8) -> Self {
@@ -385,7 +385,7 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
 
     fn swap(
         &mut self,
-        bonding_configuration_account: &Account<'info, CurveConfiguration>,
+        _bonding_configuration_account: &Account<'info, CurveConfiguration>,
         token_one_accounts: (
             &mut Account<'info, Mint>,
             &mut Account<'info, TokenAccount>,
@@ -403,7 +403,6 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
         if amount <= 0 {
             return err!(CustomError::InvalidAmount);
         }
-
 
         ///////////////////////////////////////////////////////////////
         ///////////////////////////////////////////////////////////////
@@ -557,8 +556,8 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
                 },
                 &[&[
                     LiquidityPool::POOL_SEED_PREFIX.as_bytes(),
-                    LiquidityPool::generate_seed(self.token_one.key(), self.token_two.key())
-                        .as_bytes(),
+                    self.token_one.key().as_ref(),
+                    self.token_two.key().as_ref(),
                     &[self.bump],
                 ]],
             ),
@@ -567,7 +566,6 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
 
         Ok(())
     }
-
 
     // fn execute_token_transfer(
     //     &self,
@@ -590,12 +588,11 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
     //             &[self.bump],
     //         ]],
     //     );
-    
+
     //     token::transfer(context, transfer_amount)?;
-    
+
     //     Ok(())
     // }
-    
 
     fn transfer_token_to_pool(
         &self,
@@ -637,8 +634,8 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
                 },
                 &[&[
                     LiquidityPool::POOL_SEED_PREFIX.as_bytes(),
-                    LiquidityPool::generate_seed(self.token_one.key(), self.token_two.key())
-                        .as_bytes(),
+                    self.token_one.key().as_ref(),
+                    self.token_two.key().as_ref(),
                     &[self.bump],
                 ]],
             ),
@@ -655,7 +652,7 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
     //     system_program: &Program<'info, System>,
     // ) -> Result<()> {
     //     let pool_account = self.to_account_info();
-    
+
     //     let context = CpiContext::new_with_signer(
     //         system_program.to_account_info(),
     //         system_program::Transfer {
@@ -669,12 +666,11 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
     //             &[self.bump],
     //         ]],
     //     );
-    
+
     //     system_program::transfer(context, transfer_amount)?;
-    
+
     //     Ok(())
     // }
-    
 
     fn transfer_sol_to_pool(
         &self,
