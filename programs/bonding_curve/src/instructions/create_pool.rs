@@ -1,4 +1,4 @@
-use crate::{errors::CustomError, state::*};
+use crate::state::*;
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
@@ -9,11 +9,10 @@ pub fn create_pool(ctx: Context<CreateLiquidityPool>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
     pool.set_inner(LiquidityPool::new(
-        ctx.accounts.mint_token_one.key(),
-        ctx.accounts.mint_token_two.key(),
+        ctx.accounts.payer.key(),
+        ctx.accounts.token_mint.key(),
         ctx.bumps.pool,
     ));
-
     Ok(())
 }
 
@@ -23,36 +22,21 @@ pub struct CreateLiquidityPool<'info> {
         init,
         space = LiquidityPool::ACCOUNT_SIZE,
         payer = payer,
-        seeds = [LiquidityPool::POOL_SEED_PREFIX.as_bytes(), mint_token_one.key().as_ref(), mint_token_two.key().as_ref()],
+        seeds = [LiquidityPool::POOL_SEED_PREFIX.as_bytes(), token_mint.key().as_ref()],
         bump
     )]
     pub pool: Box<Account<'info, LiquidityPool>>,
 
-    #[account(
-        constraint = !mint_token_one.key().eq(&mint_token_two.key()) @ CustomError::DuplicateTokenNotAllowed
-    )]
-    pub mint_token_one: Box<Account<'info, Mint>>,
-
-    #[account(
-        constraint = !mint_token_one.key().eq(&mint_token_two.key()) @ CustomError::DuplicateTokenNotAllowed
-    )]
-    pub mint_token_two: Box<Account<'info, Mint>>,
+    #[account(mut)]
+    pub token_mint: Box<Account<'info, Mint>>,
 
     #[account(
         init,
         payer = payer,
-        associated_token::mint = mint_token_one,
+        associated_token::mint = token_mint,
         associated_token::authority = pool
     )]
-    pub pool_token_account_one: Box<Account<'info, TokenAccount>>,
-
-    #[account(
-        init,
-        payer = payer,
-        associated_token::mint = mint_token_two,
-        associated_token::authority = pool
-    )]
-    pub pool_token_account_two: Box<Account<'info, TokenAccount>>,
+    pub pool_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
     pub payer: Signer<'info>,

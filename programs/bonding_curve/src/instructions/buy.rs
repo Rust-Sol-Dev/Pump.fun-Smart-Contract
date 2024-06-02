@@ -3,25 +3,23 @@ use anchor_spl::{
     associated_token::AssociatedToken,
     token::{Mint, Token, TokenAccount},
 };
-use crate::{consts::TOKEN_SELL_LIMIT_PERCENT, errors::CustomError, state::{LiquidityPool, LiquidityPoolAccount}};
 
-pub fn remove_liquidity(ctx: Context<RemoveLiquidity>, bump: u8) -> Result<()> {
+use crate::state::{CurveConfiguration, LiquidityPool, LiquidityPoolAccount};
+
+pub fn buy(ctx: Context<Buy>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
-    if pool.creator.key() != ctx.accounts.user.key() {
-        return Err(CustomError::NotCreator.into());
-    }
 
-    let token_accounts = (
+    let token_one_accounts = (
         &mut *ctx.accounts.token_mint,
         &mut *ctx.accounts.pool_token_account,
         &mut *ctx.accounts.user_token_account,
     );
 
-    pool.remove_liquidity(
-        token_accounts,
+    pool.buy(
+        token_one_accounts,
         &mut ctx.accounts.pool_sol_vault,
+        amount,
         &ctx.accounts.user,
-        bump,
         &ctx.accounts.token_program,
         &ctx.accounts.system_program,
     )?;
@@ -29,10 +27,17 @@ pub fn remove_liquidity(ctx: Context<RemoveLiquidity>, bump: u8) -> Result<()> {
 }
 
 #[derive(Accounts)]
-pub struct RemoveLiquidity<'info> {
+pub struct Buy<'info> {
     #[account(
         mut,
-       seeds = [LiquidityPool::POOL_SEED_PREFIX.as_bytes(), token_mint.key().as_ref()],
+        seeds = [CurveConfiguration::SEED.as_bytes()],
+        bump,
+    )]
+    pub dex_configuration_account: Box<Account<'info, CurveConfiguration>>,
+
+    #[account(
+        mut,
+        seeds = [LiquidityPool::POOL_SEED_PREFIX.as_bytes(), token_mint.key().as_ref()],
         bump = pool.bump
     )]
     pub pool: Box<Account<'info, LiquidityPool>>,
@@ -47,13 +52,6 @@ pub struct RemoveLiquidity<'info> {
     )]
     pub pool_token_account: Box<Account<'info, TokenAccount>>,
 
-    #[account(
-        mut,
-        associated_token::mint = token_mint,
-        associated_token::authority = user,
-    )]
-    pub user_token_account: Box<Account<'info, TokenAccount>>,
-
     /// CHECK:
     #[account(
         mut,
@@ -61,6 +59,14 @@ pub struct RemoveLiquidity<'info> {
         bump
     )]
     pub pool_sol_vault: AccountInfo<'info>,
+
+    #[account(
+        init_if_needed,
+        payer = user,
+        associated_token::mint = token_mint,
+        associated_token::authority = user,
+    )]
+    pub user_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
     pub user: Signer<'info>,

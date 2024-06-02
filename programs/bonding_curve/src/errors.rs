@@ -28,7 +28,25 @@ pub enum CustomError {
 
     #[msg("Failed to remove liquidity")]
     FailedToRemoveLiquidity,
+    
+    #[msg("Sold token is not enough to remove pool")]
+    NotEnoughToRemove,
+
+    #[msg("Not a pool creator")]
+    NotCreator,
 
     #[msg("Overflow or underflow occured")]
     OverflowOrUnderflowOccurred,
+
+    #[msg("Token amount is too big to sell")]
+    TokenAmountToSellTooBig,
+
+    #[msg("SOL is not enough in vault")]
+    NotEnoughSolInVault,
+
+    #[msg("Token is not enough in vault")]
+    NotEnoughTokenInVault,
+   
+    #[msg("Amount is negative")]
+    NegativeNumber,
 }

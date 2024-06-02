@@ -20,3 +20,4 @@ anchor-lang = { version="0.29.0", features = ["init-if-needed"] }
 anchor-spl = "0.29.0"
 solana-program = "1.14.17"
 spl-token = "4.0.1"
+toml_datetime = "=0.6.1"

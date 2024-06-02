@@ -13,7 +13,8 @@ import { ASSOCIATED_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/
 const connection = new Connection("http://localhost:8899")
 const curveSeed = "CurveConfiguration"
 const POOL_SEED_PREFIX = "liquidity_pool"
-
+const LIQUIDITY_SEED = "LiqudityProvider"
+const SOL_VAULT_PREFIX = "liquidity_sol_vault"
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -23,21 +24,17 @@ describe("bonding_curve", () => {
 
   const program = anchor.workspace.BondingCurve as Program<BondingCurve>;
 
-
   // custom setting 
   const user = Keypair.fromSecretKey(new Uint8Array(keys))
   const user2 = Keypair.fromSecretKey(new Uint8Array(key2))
   const tokenDecimal = 9
   const amount = new BN(1000000000).mul(new BN(10 ** tokenDecimal))
-  console.log(BigInt(amount.toString()))
-  console.log(BigInt(amount.toString()).toString())
-  console.log("🚀 ~ describe ~ amount:", amount.toString())
 
   let mint1: PublicKey
   let tokenAta1: PublicKey
 
-  let mint2: PublicKey
-  let tokenAta2: PublicKey
+  // let mint2: PublicKey
+  // let tokenAta2: PublicKey
 
   console.log("Admin's wallet address is : ", user.publicKey.toBase58())
 
@@ -59,30 +56,24 @@ describe("bonding_curve", () => {
     console.log("admin wallet balance : ", (await connection.getBalance(user.publicKey)) / 10 ** 9, "SOL")
   })
 
-
-
-
-  it("Airdrop to user wallet", async () => {
-    console.log("Created a user, address is ", user2.publicKey.toBase58())
-    console.log(`Requesting airdrop for another user ${user.publicKey.toBase58()}`)
-    // 1 - Request Airdrop
-    const signature = await connection.requestAirdrop(
-      user2.publicKey,
-      10 ** 9
-    );
-    // 2 - Fetch the latest blockhash
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-    // 3 - Confirm transaction success
-    await connection.confirmTransaction({
-      blockhash,
-      lastValidBlockHeight,
-      signature
-    }, 'finalized');
-    console.log("user balance : ", (await connection.getBalance(user.publicKey)) / 10 ** 9, "SOL")
-  })
-
-
-
+  // it("Airdrop to user wallet", async () => {
+  //   console.log("Created a user, address is ", user2.publicKey.toBase58())
+  //   console.log(`Requesting airdrop for another user ${user.publicKey.toBase58()}`)
+  //   // 1 - Request Airdrop
+  //   const signature = await connection.requestAirdrop(
+  //     user2.publicKey,
+  //     10 ** 9
+  //   );
+  //   // 2 - Fetch the latest blockhash
+  //   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+  //   // 3 - Confirm transaction success
+  //   await connection.confirmTransaction({
+  //     blockhash,
+  //     lastValidBlockHeight,
+  //     signature
+  //   }, 'finalized');
+  //   console.log("user balance : ", (await connection.getBalance(user.publicKey)) / 10 ** 9, "SOL")
+  // })
 
   it("Mint token1 to user wallet", async () => {
     console.log("Trying to create and mint token1 to user's wallet")
@@ -104,31 +95,26 @@ describe("bonding_curve", () => {
     } catch (error) {
       console.log("Token 1 creation error \n", error)
     }
-     
+
   })
 
+  // it("Mint token 2 to user wallet", async () => {
+  //   console.log("Trying to create and mint token 2 to user's wallet")
+  //   try {
+  //     mint2 = await createMint(connection, user, user.publicKey, user.publicKey, tokenDecimal)
+  //     console.log('mint 2 address: ', mint2.toBase58());
 
+  //     tokenAta2 = (await getOrCreateAssociatedTokenAccount(connection, user, mint2, user.publicKey)).address
+  //     console.log('token 2 account address: ', tokenAta2.toBase58());
 
-
-  it("Mint token 2 to user wallet", async () => {
-    console.log("Trying to create and mint token 2 to user's wallet")
-    try {
-      mint2 = await createMint(connection, user, user.publicKey, user.publicKey, tokenDecimal)
-      console.log('mint 2 address: ', mint2.toBase58());
-
-      tokenAta2 = (await getOrCreateAssociatedTokenAccount(connection, user, mint2, user.publicKey)).address
-      console.log('token 2 account address: ', tokenAta2.toBase58());
-
-      await mintTo(connection, user, mint2, tokenAta2, user.publicKey, BigInt(amount.toString()))
-      const tokenBalance = await connection.getTokenAccountBalance(tokenAta2)
-      console.log("token 2 Balance in user:", tokenBalance.value.uiAmount)
-      console.log('token 2 successfully minted');
-    } catch (error) {
-      console.log("Token 2 creation error \n", error)
-    }
-  })
-
-
+  //     await mintTo(connection, user, mint2, tokenAta2, user.publicKey, BigInt(amount.toString()))
+  //     const tokenBalance = await connection.getTokenAccountBalance(tokenAta2)
+  //     console.log("token 2 Balance in user:", tokenBalance.value.uiAmount)
+  //     console.log('token 2 successfully minted');
+  //   } catch (error) {
+  //     console.log("Token 2 creation error \n", error)
+  //   }
+  // })
 
   it("Initialize the contract", async () => {
     try {
@@ -154,7 +140,7 @@ describe("bonding_curve", () => {
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
       console.log(await connection.simulateTransaction(tx))
       const sig = await sendAndConfirmTransaction(connection, tx, [user], { skipPreflight: true })
-      console.log("Successfully initialized : ", sig)
+      console.log("Successfully initialized : ", `https://solscan.io/tx/${sig}?cluster=devnet`)
       let pool = await program.account.curveConfiguration.fetch(curveConfig)
       console.log("Pool State : ", pool)
     } catch (error) {
@@ -164,20 +150,13 @@ describe("bonding_curve", () => {
 
   it("create pool", async () => {
     try {
-      
       const [poolPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer(), mint2.toBuffer()],
+        [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer()],
         program.programId
       )
-
-      const poolTokenOne = await getAssociatedTokenAddress(
+      const poolToken = await getAssociatedTokenAddress(
         mint1, poolPda, true
       )
-
-      const poolTokenTwo = await getAssociatedTokenAddress(
-        mint2, poolPda, true
-      )
-
       const tx = new Transaction()
         .add(
           ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
@@ -186,10 +165,8 @@ describe("bonding_curve", () => {
             .createPool()
             .accounts({
               pool: poolPda,
-              mintTokenOne: mint1,
-              mintTokenTwo: mint2,
-              poolTokenAccountOne: poolTokenOne,
-              poolTokenAccountTwo: poolTokenTwo,
+              tokenMint: mint1,
+              poolTokenAccount: poolToken,
               payer: user.publicKey,
               tokenProgram: TOKEN_PROGRAM_ID,
               rent: SYSVAR_RENT_PUBKEY,
@@ -202,51 +179,48 @@ describe("bonding_curve", () => {
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
       console.log(await connection.simulateTransaction(tx))
       const sig = await sendAndConfirmTransaction(connection, tx, [user], { skipPreflight: true })
-      console.log("Successfully created pool : ", sig)
+      console.log("Successfully created pool : ", `https://solscan.io/tx/${sig}?cluster=devnet`)
     } catch (error) {
       console.log("Error in creating pool", error)
     }
   })
 
-
   it("add liquidity", async () => {
     try {
-      
+
       const [poolPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer(), mint2.toBuffer()],
+        [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer()],
         program.programId
       )
       const [liquidityProviderAccount] = PublicKey.findProgramAddressSync(
-        [Buffer.from(POOL_SEED_PREFIX), poolPda.toBuffer(), user.publicKey.toBuffer()],
+        [Buffer.from(LIQUIDITY_SEED), poolPda.toBuffer(), user.publicKey.toBuffer()],
         program.programId
       )
-      const poolTokenOne = await getAssociatedTokenAddress(
+
+      const [poolSolVault] = PublicKey.findProgramAddressSync(
+        [Buffer.from(SOL_VAULT_PREFIX), mint1.toBuffer()],
+        program.programId
+      )
+      const poolToken = await getAssociatedTokenAddress(
         mint1, poolPda, true
       )
-      const poolTokenTwo = await getAssociatedTokenAddress(
-        mint2, poolPda, true
-      )
+
       const userAta1 = await getAssociatedTokenAddress(
         mint1, user.publicKey
       )
-      const userAta2 = await getAssociatedTokenAddress(
-        mint2, user.publicKey
-      )
+
       const tx = new Transaction()
         .add(
           ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
           ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200_000 }),
           await program.methods
-            .addLiquidity(new BN(2000), new BN(4000))
+            .addLiquidity()
             .accounts({
               pool: poolPda,
-              mintTokenOne: mint1,
-              mintTokenTwo: mint2,
-              poolTokenAccountOne: poolTokenOne,
-              poolTokenAccountTwo: poolTokenTwo,
-              userTokenAccountOne: userAta1,
-              userTokenAccountTwo: userAta2,
-              liquidityProviderAccount: liquidityProviderAccount,
+              poolSolVault: poolSolVault,
+              tokenMint: mint1,
+              poolTokenAccount: poolToken,
+              userTokenAccount: userAta1,
               user: user.publicKey,
               tokenProgram: TOKEN_PROGRAM_ID,
               associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
@@ -259,52 +233,48 @@ describe("bonding_curve", () => {
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
       console.log(await connection.simulateTransaction(tx))
       const sig = await sendAndConfirmTransaction(connection, tx, [user], { skipPreflight: true })
-      console.log("Successfully added liquidity : ", sig)
+      console.log("Successfully added liquidity : ", `https://solscan.io/tx/${sig}?cluster=devnet`)
+      const userBalance = (await connection.getTokenAccountBalance(userAta1)).value.uiAmount
+      const poolBalance = (await connection.getTokenAccountBalance(poolToken)).value.uiAmount
+      console.log("after creating pool => userBalance:", userBalance)
+      console.log("after creating pool => poolBalance:", poolBalance)
     } catch (error) {
       console.log("Error in adding liquidity", error)
     }
   })
 
-  it("Swap token", async () => {
+  it("Buy token", async () => {
     try {
       const [curveConfig] = PublicKey.findProgramAddressSync(
         [Buffer.from(curveSeed)],
         program.programId
       )
-
-      
-
       const [poolPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer(), mint2.toBuffer()],
+        [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer()],
         program.programId
       )
-      const poolTokenOne = await getAssociatedTokenAddress(
+      const poolToken = await getAssociatedTokenAddress(
         mint1, poolPda, true
-      )
-      const poolTokenTwo = await getAssociatedTokenAddress(
-        mint2, poolPda, true
       )
       const userAta1 = await getAssociatedTokenAddress(
         mint1, user.publicKey
       )
-      const userAta2 = await getAssociatedTokenAddress(
-        mint2, user.publicKey
+      const [poolSolVault] = PublicKey.findProgramAddressSync(
+        [Buffer.from(SOL_VAULT_PREFIX), mint1.toBuffer()],
+        program.programId
       )
-
       const tx = new Transaction()
         .add(
           ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
           ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200_000 }),
           await program.methods
-            .swap(new BN(20))
+            .buy(new BN(10 ** 8))
             .accounts({
               pool: poolPda,
-              mintTokenOne: mint1,
-              mintTokenTwo: mint2,
-              poolTokenAccountOne: poolTokenOne,
-              poolTokenAccountTwo: poolTokenTwo,
-              userTokenAccountOne: userAta1,
-              userTokenAccountTwo: userAta2,
+              tokenMint: mint1,
+              poolSolVault,
+              poolTokenAccount: poolToken,
+              userTokenAccount: userAta1,
               dexConfigurationAccount: curveConfig,
               user: user.publicKey,
               tokenProgram: TOKEN_PROGRAM_ID,
@@ -318,51 +288,46 @@ describe("bonding_curve", () => {
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
       console.log(await connection.simulateTransaction(tx))
       const sig = await sendAndConfirmTransaction(connection, tx, [user], { skipPreflight: true })
-      console.log("Successfully swapped : ", sig)
+      console.log("Successfully bought : ", `https://solscan.io/tx/${sig}?cluster=devnet`)
 
     } catch (error) {
-      console.log("Error in swap transaction", error)
+      console.log("Error in buy transaction", error)
     }
   })
 
-  it("Remove liquidity", async () => {
+  it("Sell token", async () => {
     try {
-      
+      const [curveConfig] = PublicKey.findProgramAddressSync(
+        [Buffer.from(curveSeed)],
+        program.programId
+      )
       const [poolPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer(), mint2.toBuffer()],
+        [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer()],
         program.programId
       )
-      const [liquidityProviderAccount] = PublicKey.findProgramAddressSync(
-        [Buffer.from(POOL_SEED_PREFIX), poolPda.toBuffer(), user.publicKey.toBuffer()],
-        program.programId
-      )
-      const poolTokenOne = await getAssociatedTokenAddress(
+      const poolToken = await getAssociatedTokenAddress(
         mint1, poolPda, true
-      )
-      const poolTokenTwo = await getAssociatedTokenAddress(
-        mint2, poolPda, true
       )
       const userAta1 = await getAssociatedTokenAddress(
         mint1, user.publicKey
       )
-      const userAta2 = await getAssociatedTokenAddress(
-        mint2, user.publicKey
+      const [poolSolVault, bump] = PublicKey.findProgramAddressSync(
+        [Buffer.from(SOL_VAULT_PREFIX), mint1.toBuffer()],
+        program.programId
       )
       const tx = new Transaction()
         .add(
           ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
           ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200_000 }),
           await program.methods
-            .removeLiquidity(new BN(10))
+            .sell(amount.div(new BN(100)), bump)
             .accounts({
               pool: poolPda,
-              mintTokenOne: mint1,
-              mintTokenTwo: mint2,
-              poolTokenAccountOne: poolTokenOne,
-              poolTokenAccountTwo: poolTokenTwo,
-              userTokenAccountOne: userAta1,
-              userTokenAccountTwo: userAta2,
-              liquidityProviderAccount: liquidityProviderAccount,
+              tokenMint: mint1,
+              poolSolVault,
+              poolTokenAccount: poolToken,
+              userTokenAccount: userAta1,
+              dexConfigurationAccount: curveConfig,
               user: user.publicKey,
               tokenProgram: TOKEN_PROGRAM_ID,
               associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
@@ -375,7 +340,58 @@ describe("bonding_curve", () => {
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
       console.log(await connection.simulateTransaction(tx))
       const sig = await sendAndConfirmTransaction(connection, tx, [user], { skipPreflight: true })
-      console.log("Successfully added liquidity : ", sig)
+      console.log("Successfully Sold : ", `https://solscan.io/tx/${sig}?cluster=devnet`)
+
+    } catch (error) {
+      console.log("Error in sell transaction", error)
+    }
+  })
+
+
+  it("Remove liquidity", async () => {
+    try {
+
+      const [poolPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer()],
+        program.programId
+      )
+
+      const poolToken = await getAssociatedTokenAddress(
+        mint1, poolPda, true
+      )
+      const userAta1 = await getAssociatedTokenAddress(
+        mint1, user.publicKey
+      )
+      const [poolSolVault, bump] = PublicKey.findProgramAddressSync(
+        [Buffer.from(SOL_VAULT_PREFIX), mint1.toBuffer()],
+        program.programId
+      )
+
+      const tx = new Transaction()
+        .add(
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
+          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200_000 }),
+          await program.methods
+            .removeLiquidity(bump)
+            .accounts({
+              pool: poolPda,
+              tokenMint: mint1,
+              poolTokenAccount: poolToken,
+              userTokenAccount: userAta1,
+              poolSolVault,
+              user: user.publicKey,
+              tokenProgram: TOKEN_PROGRAM_ID,
+              associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+              rent: SYSVAR_RENT_PUBKEY,
+              systemProgram: SystemProgram.programId
+            })
+            .instruction()
+        )
+      tx.feePayer = user.publicKey
+      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+      console.log(await connection.simulateTransaction(tx))
+      const sig = await sendAndConfirmTransaction(connection, tx, [user], { skipPreflight: true })
+      console.log("Successfully added liquidity : ", `https://solscan.io/tx/${sig}?cluster=devnet`)
     } catch (error) {
       console.log("Error in removing liquidity", error)
     }
@@ -383,22 +399,3 @@ describe("bonding_curve", () => {
 });
 
 
-function comparePublicKeys(pubkey1: PublicKey, pubkey2: PublicKey): number {
-  const key1Bytes = pubkey1.toBuffer();
-  const key2Bytes = pubkey2.toBuffer();
-
-  for (let i = 0; i < key1Bytes.length; i++) {
-    if (key1Bytes[i] > key2Bytes[i]) {
-      return 1;
-    } else if (key1Bytes[i] < key2Bytes[i]) {
-      return -1;
-    }
-  }
-  return 0;
-}
-
-function generateSeed(tokenOne: PublicKey, tokenTwo: PublicKey): string {
-  return comparePublicKeys(tokenOne, tokenTwo) > 0
-    ? `${tokenOne.toString()}${tokenTwo.toString()}`
-    : `${tokenTwo.toString()}${tokenOne.toString()}`;
-}
