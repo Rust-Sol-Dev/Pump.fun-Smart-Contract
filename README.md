@@ -2,7 +2,9 @@
 Tools for Pump.fun
 This is the Rust/Anchor smart contract for Pump.fun, which includes functionalities to add virtual liquidity pools (LP), remove LP, and create Raydium Pools.
 
-### Please use it and follow me on github.
+### Please use it and follow me on github
+
+### Available to share the demo url
 
 ### Contact
 For any questions, please reach out to @rust_sol_dev on Telegram or rust_sol_dev on Discord.
@@ -19,5 +21,3 @@ Progressive Web App (PWA): Add Pump.fun to your desktop for an enhanced experien
 ### Transactions
 You can review the transactions for removing virtual LP and creating Raydium Pools in this smart contract:
 https://explorer.solana.com/tx/4L6MWmtV1ZsT8NFfbtu68ZYyYVbpvZ4iynJhPdZw8jESi28TxwojjTFs88Q5QRdNUb297aWfkKcoYP9Ya8npx8AV?cluster=devnet
-
-
