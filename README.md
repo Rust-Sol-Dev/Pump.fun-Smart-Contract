@@ -7,7 +7,7 @@ This is the Rust/Anchor smart contract for Pump.fun, which includes functionalit
 ### Available to share the demo url
 
 ### Contact
-For any questions, please reach out to @rust_sol_dev on Telegram or rust_sol_dev on Discord.
+For any questions, please reach out to @rust_sol_dev on Telegram or rust_dev_ on Discord.
 
 ### Features
 Token Listing: View a comprehensive list of Pumpfun tokens.
