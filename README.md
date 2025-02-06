@@ -13,7 +13,7 @@ For any questions, please reach out to @rust_sol_dev on Telegram or rust_dev_ on
 - **Token Creation**: Easily create SPL tokens with customizable metadata.
 - **Token Trading**: Trade tokens directly on Platform using Solana wallets.
 - **Token Management**: Update token metadata, mint new tokens, and burn tokens.
-- **Gas Optimization**: Efficient smart contracts to minimize transaction costs.
+- **Fee Optimization**: Efficient smart contracts to minimize transaction costs.
 - **User-Friendly Interface**: Simple and intuitive commands for interacting with the smart contract.
 - **Security**: Audited smart contracts to ensure safe and secure transactions.
 - **Migration**: Migrate to raydium or meteora.
