@@ -1,6 +1,5 @@
-# Pump.fun Smart Contract
-Tools for Pump.fun
-This is the Rust/Anchor smart contract for Pump.fun, which includes functionalities to add virtual liquidity pools (LP), remove LP, and create Raydium Pools.
+# PumpFun Smart Contract(Pump.Fun)
+This PumpFun Smart Contract includes functionalities to add virtual liquidity pools (LP), remove LP, and create Raydium Pools.
 
 ### Please use it and follow me on github
 
