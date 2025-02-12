@@ -6,7 +6,7 @@ This 🚀PumpFun Smart Contract(Pump.Fun) includes functionalities to add virtua
 ### Available to share the demo url
 
 ### Contact
-For any questions, please reach out to @rust_sol_dev on Telegram or rust_dev_ on Discord.
+For any questions, please reach out to @rust_sol_dev on Telegram or ytracing_pt on Discord.
 
 ### Features
 - **Token Creation**: Easily create SPL tokens with customizable metadata.
