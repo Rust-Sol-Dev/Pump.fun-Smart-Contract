@@ -1,5 +1,5 @@
 # PumpFun Smart Contract(Pump.Fun)
-This PumpFun Smart Contract includes functionalities to add virtual liquidity pools (LP), remove LP, and create Raydium Pools.
+This PumpFun Smart Contract(Pump.Fun) includes functionalities to add virtual liquidity pools (LP), remove LP, and create Raydium Pools.
 
 ### Please use it and follow me on github
 
